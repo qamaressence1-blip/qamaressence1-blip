@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<!-- El modo oscuro está activado por defecto con la clase 'dark' -->
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Qamar Essence | Alta Perfumería Árabe</title>
+    
+    <!-- PapaParse para leer el archivo CSV (Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome para los iconos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Hoja de estilos personalizada -->
+    <link href="assets/css/styles.css" rel="stylesheet">
+
+    <!-- Configuración de Tailwind para colores personalizados y modo oscuro -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Habilita el modo oscuro mediante clases
+            theme: {
+                extend: {
+                    colors: {
+                        gold: '#D4AF37',
+                        goldHover: '#AA7C11',
+                        darkBg: '#0B0B0C',
+                        darkCard: 'rgba(18, 18, 20, 0.8)',
+                        lightBg: '#F3F4F6',
+                        lightCard: 'rgba(255, 255, 255, 0.9)'
+                    },
+                    fontFamily: {
+                        luxury: ['Cinzel', 'serif'],
+                        sans: ['Montserrat', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen flex flex-col font-sans bg-lightBg text-gray-800 dark:bg-darkBg dark:text-[#E2E8F0] transition-colors duration-300 selection:bg-gold selection:text-black">
+
+    <!-- CABECERA -->
+    <header class="glass-header sticky top-0 z-50 border-b border-gray-300 dark:border-white/5 px-4 lg:px-8 py-4 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div>
+                <h1 class="font-luxury text-xl sm:text-2xl tracking-[0.2em] text-gold font-bold">QAMAR ESSENCE</h1>
+                <p class="text-[9px] uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">Alta Perfumería Árabe • Valdepeñas</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- Botón Modo Claro / Oscuro -->
+                <button id="themeToggle" class="text-gray-600 dark:text-gray-300 hover:text-gold dark:hover:text-gold transition text-xl">
+                    <i class="fas fa-moon dark:hidden" id="icon-moon"></i>
+                    <i class="fas fa-sun hidden dark:block" id="icon-sun"></i>
+                </button>
+
+                <!-- Enlace Instagram -->
+                <a href="https://www.instagram.com/qmaressence/" target="_blank" class="flex items-center gap-2 bg-gradient-to-r from-gold to-goldHover text-black font-bold text-xs px-4 py-2.5 rounded-xl shadow-lg transition transform hover:scale-105">
+                    <i class="fab fa-instagram text-sm"></i>
+                    <span class="hidden sm:inline">Síguenos en </span>Instagram
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- SECCIÓN HERO -->
+    <section class="relative py-12 text-center px-4 max-w-3xl mx-auto">
+        <span class="text-gold text-xs uppercase tracking-[0.4em] mb-2 block font-semibold">Colección Exclusiva</span>
+        <h2 class="font-luxury text-3xl sm:text-5xl text-gray-900 dark:text-white tracking-wide mb-4 transition-colors">Catálogo de Fragancias</h2>
+        <p class="text-gray-600 dark:text-gray-400 text-xs sm:text-sm leading-relaxed transition-colors">Explora nuestro inventario en tiempo real. Haz clic sobre cualquier frasco para descubrir su pirámide olfativa y realizar tu consulta directa.</p>
+    </section>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-4">
+        
+        <!-- Barra de Búsqueda y Filtros -->
+        <div class="glass-card rounded-2xl p-4 mb-8 flex flex-col lg:flex-row gap-4 items-center justify-between shadow-lg dark:gold-glow transition-all duration-300">
+            <div class="relative w-full lg:max-w-xs">
+                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Buscar perfume o marca..." class="w-full bg-white dark:bg-[#16161A] text-gray-800 dark:text-white text-sm rounded-xl pl-10 pr-4 py-3 border border-gray-300 dark:border-white/5 focus:outline-none focus:border-gold dark:focus:border-gold transition-colors">
+            </div>
+            
+            <div class="flex flex-wrap gap-2 justify-center" id="filterContainer">
+                <!-- Los botones de filtro se generan dinámicamente en main.js -->
+            </div>
+        </div>
+
+        <!-- Grid de Productos -->
+        <div id="grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+            <!-- Loader mientras carga el CSV -->
+            <div id="loader" class="col-span-full text-center py-12 text-gold">
+                <i class="fas fa-spinner fa-spin text-3xl"></i>
+                <p class="mt-4 text-sm font-medium text-gray-500 dark:text-gray-400">Cargando catálogo...</p>
+            </div>
+        </div>
+        
+        <!-- Mensaje sin resultados -->
+        <div id="noResults" class="hidden text-center py-12 text-gray-500 text-sm">
+            <i class="fas fa-wind block text-3xl mb-3 text-gray-300 dark:text-gray-700"></i> 
+            No se encontraron perfumes con esos criterios.
+        </div>
+    </main>
+
+    <!-- MODAL DETALLES DEL PRODUCTO -->
+    <div id="modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white dark:bg-darkCard w-full max-w-md rounded-2xl p-6 text-center relative border border-gray-200 dark:border-gold/30 shadow-2xl transform scale-95 transition-transform duration-300" id="modalContent">
+            
+            <button id="closeModalBtn" class="absolute top-4 right-4 text-gray-400 hover:text-gray-800 dark:hover:text-white text-2xl transition">&times;</button>
+            
+            <div class="w-40 h-40 bg-gray-50 dark:bg-white/[0.02] mx-auto rounded-xl flex items-center justify-center p-4 mb-4 border border-gray-100 dark:border-white/5">
+                <img id="mImg" src="" class="max-h-full max-w-full object-contain filter drop-shadow-md dark:drop-shadow-[0_4px_10px_rgba(0,0,0,0.7)]" alt="Perfume">
+            </div>
+            
+            <p id="mMarca" class="text-[10px] uppercase tracking-[0.2em] text-gold font-bold mb-0.5"></p>
+            <h3 id="mNombre" class="font-luxury text-xl text-gray-900 dark:text-white mb-4"></h3>
+            
+            <div class="bg-gray-50 dark:bg-[#121214] rounded-xl p-4 text-left text-xs space-y-2.5 mb-6 border border-gray-200 dark:border-white/5">
+                <p class="text-gray-600 dark:text-gray-400 uppercase tracking-wider text-[9px] font-bold border-b border-gray-200 dark:border-white/5 pb-1 flex items-center gap-1.5">
+                    <i class="fas fa-layer-group text-gold"></i> Notas Olfativas
+                </p>
+                <p><span class="text-gold font-semibold w-14 inline-block">Salida:</span> <span id="nS" class="text-gray-700 dark:text-gray-300"></span></p>
+                <p><span class="text-gold font-semibold w-14 inline-block">Corazón:</span> <span id="nC" class="text-gray-700 dark:text-gray-300"></span></p>
+                <p><span class="text-gold font-semibold w-14 inline-block">Fondo:</span> <span id="nF" class="text-gray-700 dark:text-gray-300"></span></p>
+            </div>
+
+            <div class="flex items-center justify-between gap-4 pt-2">
+                <div class="text-left">
+                    <span class="text-[9px] uppercase text-gray-500 block tracking-wider">Precio catálogo</span>
+                    <span id="mPrecio" class="text-xl font-bold font-luxury text-gray-900 dark:text-white"></span>
+                </div>
+                <a id="mLink" href="#" target="_blank" class="flex-grow flex items-center justify-center gap-2 bg-gradient-to-r from-gold to-goldHover text-black font-bold text-xs py-3.5 rounded-xl shadow-md hover:brightness-110 active:scale-95 transition">
+                    <i class="fab fa-instagram text-sm"></i> Consultar DM
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="glass-header border-t border-gray-300 dark:border-white/5 mt-auto py-8 text-center px-4 text-xs text-gray-500 transition-colors">
+        <p class="text-gray-600 dark:text-gray-300 font-medium mb-1"><i class="fas fa-map-marker-alt text-gold mr-1"></i> Boutique Oficial: Valdepeñas, Ciudad Real</p>
+        <p class="tracking-wide">© 2026 Qamar Essence. Todos los derechos reservados. Optimizado para GitHub Pages.</p>
+    </footer>
+
+    <!-- Lógica de la aplicación -->
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
