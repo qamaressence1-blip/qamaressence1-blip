@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // --- CARGAR DATOS DESDE EL EXCEL (CSV) ---
 function loadCSVData() {
     // Usamos PapaParse para leer el archivo data/perfumes.csv
-    Papa.parse("data/perfumes.csv", {
+    Papa.parse("assets/perfumes.csv", {
         download: true,       // Descarga el archivo de la ruta especificada
         header: true,         // La primera fila contiene los nombres de las columnas
         skipEmptyLines: true, // Ignora filas vacías en el Excel
