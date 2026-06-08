@@ -1,132 +1,154 @@
-/* =============================================
-   Qamar Essence - Lógica Principal (JavaScript)
-   =============================================
-*/
-
 // --- VARIABLES GLOBALES ---
-let perfumesData = []; // Aquí se guardarán los datos leídos del CSV
-let currentCategory = 'Todos'; // Categoría seleccionada por defecto
+let perfumesData = [];
+let currentCategory = 'Todos';
+let currentMarca = 'Todas';  // ← NUEVO
 
-// Elementos del DOM
 const grid = document.getElementById("grid");
 const loader = document.getElementById("loader");
 const noResults = document.getElementById("noResults");
 const searchInput = document.getElementById("searchInput");
 const filterContainer = document.getElementById("filterContainer");
+const brandContainer = document.getElementById("brandContainer"); // ← NUEVO elemento en el HTML
 
 // --- INICIALIZACIÓN ---
 document.addEventListener("DOMContentLoaded", () => {
     initTheme();
     loadCSVData();
-
-    // Event Listener para el buscador en tiempo real
     searchInput.addEventListener("input", renderGrid);
-    
-    // Event Listeners para cerrar el modal
     document.getElementById("closeModalBtn").addEventListener("click", closeModal);
     document.getElementById("modal").addEventListener("click", (e) => {
-        if (e.target.id === "modal") closeModal(); // Cerrar si se hace clic fuera de la tarjeta
+        if (e.target.id === "modal") closeModal();
     });
 });
 
-// --- CARGAR DATOS DESDE EL EXCEL (CSV) ---
+// --- CARGAR CSV ---
 function loadCSVData() {
-    // Usamos PapaParse para leer el archivo data/perfumes.csv
     Papa.parse("assets/perfumes.csv", {
-        download: true,       // Descarga el archivo de la ruta especificada
-        header: true,         // La primera fila contiene los nombres de las columnas
-        skipEmptyLines: true, // Ignora filas vacías en el Excel
+        download: true,
+        header: true,
+        skipEmptyLines: true,
         complete: function(results) {
-            // Se ejecuta cuando termina de leer el CSV
             perfumesData = results.data;
-            loader.style.display = "none"; // Oculta el loader animado
-            
-            generateFilters(); // Genera los botones dinámicamente según las categorías
-            renderGrid();      // Dibuja las tarjetas
+            loader.style.display = "none";
+            generateFilters();
+            renderGrid();
         },
         error: function(err) {
             console.error("Error al cargar el CSV:", err);
-            loader.innerHTML = "<p class='text-red-500'>Error al cargar el catálogo. Comprueba que el archivo data/perfumes.csv existe.</p>";
+            loader.innerHTML = "<p class='text-red-500'>Error al cargar el catálogo.</p>";
         }
     });
 }
 
-// --- GENERAR BOTONES DE FILTRO DINÁMICAMENTE ---
+// --- FILTROS DE CATEGORÍA ---
 function generateFilters() {
-    // Obtener categorías únicas del CSV (ignorando vacíos)
     const categorias = new Set();
     perfumesData.forEach(p => {
-        if(p.Categoria) categorias.add(p.Categoria.trim());
+        if (p.Categoria) categorias.add(p.Categoria.trim());
     });
 
-    // Crear array de categorías (Todos siempre va primero)
     const filterOptions = ['Todos', ...Array.from(categorias)];
-    
-    filterContainer.innerHTML = ""; // Limpiar contenedor
+    filterContainer.innerHTML = "";
 
     filterOptions.forEach(cat => {
         const btn = document.createElement("button");
         btn.innerText = cat;
         btn.onclick = () => {
             currentCategory = cat;
+            currentMarca = 'Todas'; // ← Resetear marca al cambiar categoría
             updateFilterButtons();
+            generateBrandFilters(); // ← NUEVO: regenerar marcas
             renderGrid();
         };
         filterContainer.appendChild(btn);
     });
 
     updateFilterButtons();
+    generateBrandFilters(); // ← NUEVO: mostrar marcas al inicio
 }
 
-// Actualizar el estilo visual de los botones de filtro
 function updateFilterButtons() {
-    const buttons = filterContainer.querySelectorAll("button");
-    buttons.forEach(btn => {
-        if (btn.innerText === currentCategory) {
-            btn.className = "btn-filter active shadow-sm";
-        } else {
-            btn.className = "btn-filter inactive hover:bg-gray-100 dark:hover:bg-white/5";
-        }
+    filterContainer.querySelectorAll("button").forEach(btn => {
+        btn.className = btn.innerText === currentCategory
+            ? "btn-filter active shadow-sm"
+            : "btn-filter inactive hover:bg-gray-100 dark:hover:bg-white/5";
     });
 }
 
-// --- RENDERIZAR LAS TARJETAS ---
+// --- FILTROS DE MARCA (NUEVO) ---
+function generateBrandFilters() {
+    if (!brandContainer) return;
+
+    // Obtener marcas únicas del subconjunto filtrado por categoría actual
+    const marcas = new Set();
+    perfumesData.forEach(p => {
+        if (!p.Marca) return;
+        const matchCat = currentCategory === 'Todos' || (p.Categoria && p.Categoria.trim() === currentCategory);
+        if (matchCat) marcas.add(p.Marca.trim());
+    });
+
+    // Si solo hay una marca (o ninguna), ocultar el contenedor
+    if (marcas.size <= 1) {
+        brandContainer.innerHTML = "";
+        brandContainer.style.display = "none";
+        return;
+    }
+
+    brandContainer.style.display = "";
+    brandContainer.innerHTML = "";
+
+    const brandOptions = ['Todas', ...Array.from(marcas).sort()];
+
+    brandOptions.forEach(marca => {
+        const btn = document.createElement("button");
+        btn.innerText = marca;
+        btn.onclick = () => {
+            currentMarca = marca;
+            updateBrandButtons();
+            renderGrid();
+        };
+        brandContainer.appendChild(btn);
+    });
+
+    updateBrandButtons();
+}
+
+function updateBrandButtons() {
+    if (!brandContainer) return;
+    brandContainer.querySelectorAll("button").forEach(btn => {
+        // Estilo más sutil que los filtros de categoría (usa clases diferentes o inline)
+        btn.className = btn.innerText === currentMarca
+            ? "btn-filter active shadow-sm"
+            : "btn-filter inactive hover:bg-gray-100 dark:hover:bg-white/5";
+    });
+}
+
+// --- RENDERIZAR GRID ---
 function renderGrid() {
     const txtSearch = searchInput.value.toLowerCase().trim();
-    grid.innerHTML = ""; // Limpiar grid
+    grid.innerHTML = "";
 
-    // Filtrar los datos basándonos en la categoría y el texto buscado
     const filtered = perfumesData.filter(p => {
-        // Ignorar filas incompletas o corruptas
         if (!p.Nombre || !p.Marca) return false;
 
         const matchSearch = p.Nombre.toLowerCase().includes(txtSearch) || p.Marca.toLowerCase().includes(txtSearch);
         const matchCat = currentCategory === 'Todos' || p.Categoria.trim() === currentCategory;
-        
-        // ¡IMPORTANTE! El campo p.Stock existe en el objeto (porque está en el CSV) 
-        // pero NO lo usamos aquí para mostrarlo, manteniendo tu control de inventario oculto al cliente.
-        // Opcional: Podrías hacer que si p.Stock == "0", no se muestre el producto.
-        // if (parseInt(p.Stock) <= 0) return false; 
+        const matchMarca = currentMarca === 'Todas' || p.Marca.trim() === currentMarca; // ← NUEVO
 
-        return matchSearch && matchCat;
+        return matchSearch && matchCat && matchMarca;
     });
 
-    // Mostrar mensaje si no hay resultados
     if (filtered.length === 0) {
         noResults.classList.remove("hidden");
     } else {
         noResults.classList.add("hidden");
     }
 
-    // Crear las tarjetas para cada producto filtrado
     filtered.forEach(p => {
         const card = document.createElement("div");
         card.className = "glass-card rounded-2xl p-3 sm:p-4 flex flex-col justify-between cursor-pointer dark:gold-glow-hover transition transform hover:-translate-y-1 shadow-md hover:shadow-lg border border-gray-200 dark:border-transparent";
-        
-        // Al hacer clic, abre el modal
         card.onclick = () => openModal(p);
-        
-        // Formatear precio
+
         const precioFormateado = parseFloat(p.Precio).toFixed(2);
 
         card.innerHTML = `
@@ -147,60 +169,43 @@ function renderGrid() {
     });
 }
 
-// --- LÓGICA DEL MODAL ---
+// --- MODAL (sin cambios) ---
 const modal = document.getElementById("modal");
 const modalContent = document.getElementById("modalContent");
 
 function openModal(p) {
-    // Rellenar datos
     document.getElementById("mImg").src = p.Imagen;
     document.getElementById("mMarca").innerText = p.Marca;
     document.getElementById("mNombre").innerText = p.Nombre;
-    
-    // Si no hay notas especificadas en el Excel, poner un guion
     document.getElementById("nS").innerText = p.Salida || "-";
     document.getElementById("nC").innerText = p.Corazon || "-";
     document.getElementById("nF").innerText = p.Fondo || "-";
-    
     document.getElementById("mPrecio").innerText = parseFloat(p.Precio).toFixed(2) + "€";
-    
-    // Personalizar el mensaje de Instagram (Opcional)
-    const mensaje = encodeURIComponent(`Hola, me interesa el perfume ${p.Nombre} de ${p.Marca}.`);
-    // Ojo: Instagram no soporta links con texto predefinido directamente por DM web fácilmente, pero lo dejamos listo por si usas WhatsApp en el futuro (ej. wa.me/TuNumero?text=...)
-    // Mantenemos el link a tu perfil
     document.getElementById("mLink").href = "https://www.instagram.com/qmaressence/";
 
-    // Mostrar con animación
     modal.classList.remove("hidden");
-    // Pequeño delay para que la transición de opacidad funcione
     setTimeout(() => {
         modal.classList.remove("opacity-0");
         modalContent.classList.remove("scale-95");
         modalContent.classList.add("scale-100");
     }, 10);
-    
-    // Evitar scroll en el body
     document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
-    // Animación de salida
     modal.classList.add("opacity-0");
     modalContent.classList.remove("scale-100");
     modalContent.classList.add("scale-95");
-    
     setTimeout(() => {
         modal.classList.add("hidden");
-        // Restaurar scroll
         document.body.style.overflow = 'auto';
-    }, 300); // 300ms es la duración de la transición en CSS
+    }, 300);
 }
 
-// --- MODO CLARO / OSCURO ---
+// --- TEMA ---
 const themeToggleBtn = document.getElementById("themeToggle");
 
 function initTheme() {
-    // Verifica si hay una preferencia guardada, sino usa oscuro por defecto (como pediste)
     if (localStorage.theme === 'light') {
         document.documentElement.classList.remove('dark');
     } else {

@@ -21,7 +21,7 @@
     <!-- Configuración de Tailwind para colores personalizados y modo oscuro -->
     <script>
         tailwind.config = {
-            darkMode: 'class', // Habilita el modo oscuro mediante clases
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -78,15 +78,26 @@
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-4">
         
         <!-- Barra de Búsqueda y Filtros -->
-        <div class="glass-card rounded-2xl p-4 mb-8 flex flex-col lg:flex-row gap-4 items-center justify-between shadow-lg dark:gold-glow transition-all duration-300">
-            <div class="relative w-full lg:max-w-xs">
-                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="searchInput" placeholder="Buscar perfume o marca..." class="w-full bg-white dark:bg-[#16161A] text-gray-800 dark:text-white text-sm rounded-xl pl-10 pr-4 py-3 border border-gray-300 dark:border-white/5 focus:outline-none focus:border-gold dark:focus:border-gold transition-colors">
-            </div>
+        <div class="glass-card rounded-2xl p-4 mb-8 flex flex-col gap-3 shadow-lg dark:gold-glow transition-all duration-300">
             
-            <div class="flex flex-wrap gap-2 justify-center" id="filterContainer">
-                <!-- Los botones de filtro se generan dinámicamente en main.js -->
+            <!-- Fila superior: buscador + filtros de categoría -->
+            <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                <div class="relative w-full lg:max-w-xs">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar perfume o marca..." class="w-full bg-white dark:bg-[#16161A] text-gray-800 dark:text-white text-sm rounded-xl pl-10 pr-4 py-3 border border-gray-300 dark:border-white/5 focus:outline-none focus:border-gold dark:focus:border-gold transition-colors">
+                </div>
+                
+                <!-- Filtros de categoría (Todos / Hombre / Mujer / ...) -->
+                <div class="flex flex-wrap gap-2 justify-center" id="filterContainer">
+                    <!-- Generados dinámicamente en main.js -->
+                </div>
             </div>
+
+            <!-- Fila de sub-filtros por marca (aparece dinámicamente) -->
+            <div id="brandContainer" class="flex flex-wrap gap-1.5 pt-1 border-t border-gray-200 dark:border-white/5" style="display:none;">
+                <!-- Generados dinámicamente en main.js -->
+            </div>
+
         </div>
 
         <!-- Grid de Productos -->
