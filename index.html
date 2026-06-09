@@ -185,67 +185,7 @@
         <p class="tracking-wide">© 2026 Qamar Essence. Todos los derechos reservados.</p>
     </footer>
 
-    <!-- Script de Inauguración y Confeti -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            const welcomeModal = document.getElementById("welcomeModal");
-            const welcomeContent = document.getElementById("welcomeModalContent");
-            const closeWelcomeBtn = document.getElementById("closeWelcomeBtn");
 
-            // Configuración de colores personalizados de confeti (Tonos Dorados y Blancos de lujo)
-            const goldColors = ['#D4AF37', '#F3E5AB', '#AA7C11', '#FFFFFF', '#ECE1B4'];
-
-            // Función para lanzar ráfagas de confeti continuo de fondo
-            function launchInaugurationConfetti() {
-                var duration = 4 * 1000;
-                var end = Date.now() + duration;
-
-                (function frame() {
-                    confetti({
-                        particleCount: 3,
-                        angle: 60,
-                        spread: 55,
-                        origin: { x: 0, y: 0.8 },
-                        colors: goldColors
-                    });
-                    confetti({
-                        particleCount: 3,
-                        angle: 120,
-                        spread: 55,
-                        origin: { x: 1, y: 0.8 },
-                        colors: goldColors
-                    });
-
-                    if (Date.now() < end) {
-                        requestAnimationFrame(frame);
-                    }
-                }());
-            }
-
-            // Lanzar primer confeti al cargar la web
-            setTimeout(() => {
-                launchInaugurationConfetti();
-            }, 300);
-
-            // Cierre del modal con animación fluida
-            closeWelcomeBtn.addEventListener("click", () => {
-                welcomeContent.classList.add("scale-95");
-                welcomeModal.classList.add("opacity-0");
-                
-                // Lanzar una explosión final masiva desde el centro al entrar al catálogo
-                confetti({
-                    particleCount: 150,
-                    spread: 80,
-                    origin: { y: 0.6 },
-                    colors: goldColors
-                });
-
-                setTimeout(() => {
-                    welcomeModal.style.display = "none";
-                }, 500);
-            });
-        });
-    </script>
 
     <!-- Lógica de la aplicación -->
     <script src="assets/js/main.js"></script>

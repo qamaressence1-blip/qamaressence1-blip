@@ -223,3 +223,100 @@ themeToggleBtn.addEventListener("click", () => {
         localStorage.theme = 'dark';
     }
 });
+
+
+// 1. Bloquear clic derecho (Menú contextual)
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+    // 2. Bloquear atajos de teclado comunes de las DevTools
+    document.addEventListener('keydown', function(e) {
+        // F12
+        if (e.key === 'F12') {
+            e.preventDefault();
+        }
+        // Ctrl+Shift+I (Windows/Linux) o Cmd+Opt+I (Mac)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i')) {
+            e.preventDefault();
+        }
+        // Ctrl+Shift+J (Consola)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j')) {
+            e.preventDefault();
+        }
+        // Ctrl+U o Cmd+Opt+U (Ver código fuente)
+        if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u')) {
+            e.preventDefault();
+        }
+        // Ctrl+Shift+C (Inspector de elementos)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'C' || e.key === 'c')) {
+            e.preventDefault();
+        }
+    });
+
+    // 3. El truco del "Debugger infinito"
+    // Si consiguen abrir las DevTools por el menú del navegador, esto pausará la ejecución de la página constantemente en la pestaña "Sources"
+    setInterval(function() {
+        debugger;
+    }, 100);
+
+    //Script de Inauguración y Confeti
+
+     document.addEventListener("DOMContentLoaded", () => {
+            const welcomeModal = document.getElementById("welcomeModal");
+            const welcomeContent = document.getElementById("welcomeModalContent");
+            const closeWelcomeBtn = document.getElementById("closeWelcomeBtn");
+
+            // Configuración de colores personalizados de confeti (Tonos Dorados y Blancos de lujo)
+            const goldColors = ['#D4AF37', '#F3E5AB', '#AA7C11', '#FFFFFF', '#ECE1B4'];
+
+            // Función para lanzar ráfagas de confeti continuo de fondo
+            function launchInaugurationConfetti() {
+                var duration = 4 * 1000;
+                var end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 3,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0, y: 0.8 },
+                        colors: goldColors
+                    });
+                    confetti({
+                        particleCount: 3,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1, y: 0.8 },
+                        colors: goldColors
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+            }
+
+            // Lanzar primer confeti al cargar la web
+            setTimeout(() => {
+                launchInaugurationConfetti();
+            }, 300);
+
+            // Cierre del modal con animación fluida
+            closeWelcomeBtn.addEventListener("click", () => {
+                welcomeContent.classList.add("scale-95");
+                welcomeModal.classList.add("opacity-0");
+                
+                // Lanzar una explosión final masiva desde el centro al entrar al catálogo
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: goldColors
+                });
+
+                setTimeout(() => {
+                    welcomeModal.style.display = "none";
+                }, 500);
+            });
+        });
