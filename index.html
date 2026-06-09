@@ -9,6 +9,9 @@
     <!-- PapaParse para leer el archivo CSV (Excel) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     
+    <!-- Canvas Confetti para la animación de inauguración -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -21,7 +24,7 @@
     <!-- Configuración de Tailwind para colores personalizados y modo oscuro -->
     <script>
         tailwind.config = {
-            darkMode: 'class', // Habilita el modo oscuro mediante clases
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -42,6 +45,32 @@
     </script>
 </head>
 <body class="min-h-screen flex flex-col font-sans bg-lightBg text-gray-800 dark:bg-darkBg dark:text-[#E2E8F0] transition-colors duration-300 selection:bg-gold selection:text-black">
+
+    <!-- MODAL DE INAUGURACIÓN (BIENVENIDA) -->
+    <div id="welcomeModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 dark:bg-black/90 backdrop-blur-md transition-opacity duration-500">
+        <div class="bg-white dark:bg-[#121214] w-full max-w-lg rounded-2xl p-8 text-center relative border border-gray-200 dark:border-gold/40 shadow-[0_0_30px_rgba(212,175,55,0.2)] transform scale-100 transition-transform duration-500" id="welcomeModalContent">
+            
+            <!-- Icono de Celebración Dorado -->
+            <div class="w-20 h-20 bg-gold/10 mx-auto rounded-full flex items-center justify-center mb-6 border border-gold/30 animate-bounce">
+                <i class="fas fa-gavel text-3xl text-gold hidden"></i> <!-- Por si acaso, pero mejor unas estrellas árabes o copa -->
+                <i class="fas fa-sparkles text-3xl text-gold"></i>
+            </div>
+            
+            <span class="text-gold text-xs uppercase tracking-[0.4em] mb-2 block font-semibold">Gran Apertura</span>
+            <h2 class="font-luxury text-3xl sm:text-4xl text-gray-900 dark:text-white tracking-wide mb-4">¡Bienvenidos a Qamar Essence!</h2>
+            
+            <div class="w-16 h-[1px] bg-gold/50 mx-auto mb-6"></div>
+            
+            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed mb-8">
+                Nos complace abrir las puertas de nuestro nuevo catálogo digital de alta perfumería árabe en Valdepeñas. 
+                Descubre esencias exclusivas, pirámides olfativas únicas y encuentra tu aroma ideal con disponibilidad en tiempo real.
+            </p>
+
+            <button id="closeWelcomeBtn" class="w-full sm:w-auto px-8 flex items-center justify-center gap-2 bg-gradient-to-r from-gold to-goldHover text-black font-bold text-sm py-4 rounded-xl shadow-xl hover:brightness-110 active:scale-95 transition mx-auto">
+                <i class="fas fa-door-open"></i> Explorar Catálogo
+            </button>
+        </div>
+    </div>
 
     <!-- CABECERA -->
     <header class="glass-header sticky top-0 z-50 border-b border-gray-300 dark:border-white/5 px-4 lg:px-8 py-4 transition-colors duration-300">
@@ -78,15 +107,26 @@
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-4">
         
         <!-- Barra de Búsqueda y Filtros -->
-        <div class="glass-card rounded-2xl p-4 mb-8 flex flex-col lg:flex-row gap-4 items-center justify-between shadow-lg dark:gold-glow transition-all duration-300">
-            <div class="relative w-full lg:max-w-xs">
-                <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-                <input type="text" id="searchInput" placeholder="Buscar perfume o marca..." class="w-full bg-white dark:bg-[#16161A] text-gray-800 dark:text-white text-sm rounded-xl pl-10 pr-4 py-3 border border-gray-300 dark:border-white/5 focus:outline-none focus:border-gold dark:focus:border-gold transition-colors">
-            </div>
+        <div class="glass-card rounded-2xl p-4 mb-8 flex flex-col gap-3 shadow-lg dark:gold-glow transition-all duration-300">
             
-            <div class="flex flex-wrap gap-2 justify-center" id="filterContainer">
-                <!-- Los botones de filtro se generan dinámicamente en main.js -->
+            <!-- Fila superior: buscador + filtros de categoría -->
+            <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+                <div class="relative w-full lg:max-w-xs">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar perfume o marca..." class="w-full bg-white dark:bg-[#16161A] text-gray-800 dark:text-white text-sm rounded-xl pl-10 pr-4 py-3 border border-gray-300 dark:border-white/5 focus:outline-none focus:border-gold dark:focus:border-gold transition-colors">
+                </div>
+                
+                <!-- Filtros de categoría (Todos / Hombre / Mujer / ...) -->
+                <div class="flex flex-wrap gap-2 justify-center" id="filterContainer">
+                    <!-- Generados dinámicamente en main.js -->
+                </div>
             </div>
+
+            <!-- Fila de sub-filtros por marca (aparece dinámicamente) -->
+            <div id="brandContainer" class="flex flex-wrap gap-1.5 pt-1 border-t border-gray-200 dark:border-white/5" style="display:none;">
+                <!-- Generados dinámicamente en main.js -->
+            </div>
+
         </div>
 
         <!-- Grid de Productos -->
@@ -142,8 +182,10 @@
     <!-- FOOTER -->
     <footer class="glass-header border-t border-gray-300 dark:border-white/5 mt-auto py-8 text-center px-4 text-xs text-gray-500 transition-colors">
         <p class="text-gray-600 dark:text-gray-300 font-medium mb-1"><i class="fas fa-map-marker-alt text-gold mr-1"></i> Boutique Oficial: Valdepeñas, Ciudad Real</p>
-        <p class="tracking-wide">© 2026 Qamar Essence. Todos los derechos reservados. Optimizado para GitHub Pages.</p>
+        <p class="tracking-wide">© 2026 Qamar Essence. Todos los derechos reservados.</p>
     </footer>
+
+
 
     <!-- Lógica de la aplicación -->
     <script src="assets/js/main.js"></script>
